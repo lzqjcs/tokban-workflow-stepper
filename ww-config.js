@@ -113,12 +113,58 @@ export default {
       label: { en: 'Connector Width' },
       type: 'Length',
       section: 'style',
-      defaultValue: '20px',
+      defaultValue: '24px',
       bindable: true,
       /* wwEditor:start */
       bindingValidation: {
         type: 'string',
-        tooltip: 'Width of the dashed line between steps.',
+        tooltip: 'Width of the connector line between steps.',
+      },
+      /* wwEditor:end */
+    },
+    connectorColor: {
+      label: { en: 'Connector Color' },
+      type: 'Color',
+      section: 'style',
+      defaultValue: '#C9C9C9',
+      bindable: true,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'Color of the connector line between steps.',
+      },
+      /* wwEditor:end */
+    },
+    connectorThickness: {
+      label: { en: 'Connector Thickness' },
+      type: 'Length',
+      section: 'style',
+      defaultValue: '1.5px',
+      bindable: true,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'Thickness of the connector line (e.g. 1px, 2px).',
+      },
+      /* wwEditor:end */
+    },
+    connectorLineStyle: {
+      label: { en: 'Connector Style' },
+      type: 'TextSelect',
+      section: 'style',
+      options: {
+        options: [
+          { value: 'solid',  label: 'Solid' },
+          { value: 'dashed', label: 'Dashed' },
+          { value: 'dotted', label: 'Dotted' },
+        ],
+      },
+      defaultValue: 'solid',
+      bindable: true,
+      /* wwEditor:start */
+      bindingValidation: {
+        type: 'string',
+        tooltip: 'Valid values: solid | dashed | dotted',
       },
       /* wwEditor:end */
     },

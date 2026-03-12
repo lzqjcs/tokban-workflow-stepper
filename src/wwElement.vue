@@ -5,7 +5,7 @@
       <span
         v-if="i > 0"
         class="tk-connector"
-        :class="{ 'tk-muted': isCancelled }"
+        :style="connectorInlineStyle(i)"
       ></span>
       <!-- Step pill -->
       <span
@@ -118,7 +118,6 @@ export default {
     const rootStyle = computed(() => ({
       '--tk-active-color':    props.content?.activeColor    || '#2C3131',
       '--tk-completed-color': props.content?.completedColor || '#4CAF50',
-      '--tk-connector-width': props.content?.connectorWidth || '20px',
       '--tk-font':            props.content?.fontFamily     || 'inherit',
     }));
 
@@ -150,6 +149,45 @@ export default {
       return {};
     };
 
+    // ── Connector inline style (computed per render to stay reactive) ──
+    const connectorInlineStyle = (stepIndex) => {
+      const color = (isCancelled.value ? '#E8E8E8' : null)
+        || props.content?.connectorColor
+        || '#C9C9C9';
+      const width      = props.content?.connectorWidth     || '24px';
+      const thickness  = props.content?.connectorThickness || '1.5px';
+      const lineStyle  = props.content?.connectorLineStyle || 'solid';
+      const thickNum   = parseFloat(thickness) || 1.5;
+
+      // For 'done' connectors (all steps before active), use completedColor
+      const isDoneConnector = !isCancelled.value && stepIndex <= activeIndex.value;
+      const resolvedColor = isCancelled.value
+        ? '#E8E8E8'
+        : isDoneConnector
+          ? (props.content?.completedColor || '#4CAF50')
+          : (props.content?.connectorColor || '#C9C9C9');
+
+      let background;
+      if (lineStyle === 'dashed') {
+        const dash = Math.max(thickNum * 4, 6);
+        const gap  = Math.max(thickNum * 3, 4);
+        background = `repeating-linear-gradient(90deg, ${resolvedColor} 0, ${resolvedColor} ${dash}px, transparent ${dash}px, transparent ${dash + gap}px)`;
+      } else if (lineStyle === 'dotted') {
+        background = `repeating-linear-gradient(90deg, ${resolvedColor} 0, ${resolvedColor} ${thickNum}px, transparent ${thickNum}px, transparent ${thickNum * 4}px)`;
+      } else {
+        background = resolvedColor;
+      }
+
+      return {
+        width,
+        height: thickness,
+        background,
+        flexShrink: '0',
+        alignSelf: 'center',
+        display: 'block',
+      };
+    };
+
     // ── Sync internal variables ──
     watch(activeIndex, (v) => setCurrentStepIndex(v), { immediate: true });
     watch(steps, (v) => setTotalSteps(v?.length || 0), { immediate: true });
@@ -174,6 +212,7 @@ export default {
       isCancelled,
       stepClass,
       stepStyle,
+      connectorInlineStyle,
       handleStepClick,
       /* wwEditor:start */
       isEditing,
@@ -245,15 +284,10 @@ export default {
   border-color: #E8E8E8;
 }
 
-/* ── Connector dashed line ── */
+/* ── Connector: all styles applied inline for full reactivity ── */
 .tk-connector {
-  width: var(--tk-connector-width);
-  height: 0;
-  border-top: 1.5px dashed #C9C9C9;
   flex-shrink: 0;
-}
-
-.tk-connector.tk-muted {
-  border-top-color: #E8E8E8;
+  align-self: center;
+  display: block;
 }
 </style>
