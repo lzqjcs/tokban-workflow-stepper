@@ -150,17 +150,16 @@ export default {
     };
 
     // ── Connector inline style (computed per render to stay reactive) ──
+    // Done connectors (≤ activeIndex) → solid + completedColor
+    // Future connectors (> activeIndex) → dashed + connectorColor
+    // Cancelled → solid + muted gray
     const connectorInlineStyle = (stepIndex) => {
-      const color = (isCancelled.value ? '#E8E8E8' : null)
-        || props.content?.connectorColor
-        || '#C9C9C9';
-      const width      = props.content?.connectorWidth     || '24px';
-      const thickness  = props.content?.connectorThickness || '1.5px';
-      const lineStyle  = props.content?.connectorLineStyle || 'solid';
-      const thickNum   = parseFloat(thickness) || 1.5;
+      const width     = props.content?.connectorWidth     || '24px';
+      const thickness = props.content?.connectorThickness || '1.5px';
+      const thickNum  = parseFloat(thickness) || 1.5;
 
-      // For 'done' connectors (all steps before active), use completedColor
       const isDoneConnector = !isCancelled.value && stepIndex <= activeIndex.value;
+
       const resolvedColor = isCancelled.value
         ? '#E8E8E8'
         : isDoneConnector
@@ -168,21 +167,23 @@ export default {
           : (props.content?.connectorColor || '#C9C9C9');
 
       let background;
-      if (lineStyle === 'dashed') {
+      if (isCancelled.value || isDoneConnector) {
+        // Solid line for completed progress and cancelled state
+        background = resolvedColor;
+      } else {
+        // Dashed line for steps not yet reached
         const dash = Math.max(thickNum * 4, 6);
         const gap  = Math.max(thickNum * 3, 4);
         background = `repeating-linear-gradient(90deg, ${resolvedColor} 0, ${resolvedColor} ${dash}px, transparent ${dash}px, transparent ${dash + gap}px)`;
-      } else if (lineStyle === 'dotted') {
-        background = `repeating-linear-gradient(90deg, ${resolvedColor} 0, ${resolvedColor} ${thickNum}px, transparent ${thickNum}px, transparent ${thickNum * 4}px)`;
-      } else {
-        background = resolvedColor;
       }
 
       return {
         width,
         height: thickness,
+        minWidth: width,
         background,
         flexShrink: '0',
+        flexGrow: '0',
         alignSelf: 'center',
         display: 'block',
       };
@@ -225,10 +226,14 @@ export default {
 <style scoped>
 /* ── Root container ── */
 .tk-stepper-root {
-  display: inline-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0;
   font-family: var(--tk-font);
+  width: max-content;
+  min-width: max-content;
 }
 
 /* ── Step pill (default = future) ── */
@@ -287,6 +292,7 @@ export default {
 /* ── Connector: all styles applied inline for full reactivity ── */
 .tk-connector {
   flex-shrink: 0;
+  flex-grow: 0;
   align-self: center;
   display: block;
 }
